@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=BBH+Sans+Bogle&family=Montserrat:ital@0;1&family=Outfit:wght@100..900&family=Special+Gothic+Condensed+One&display=swap');
+@import "tailwindcss";
+
+*{
+      font-family: "Montserrat", sans-serif;
+}
+@layer base{
+      button{
+            cursor: pointer;
+      }
+      input:not([not="checkbox"]){
+            @apply outline-none focus:ring border border-gray-300
+            focus:ring-blue-500 focus:border-blue-500 rounded-lg;
+      }
+      textarea{
+            @apply outline-none focus:ring border border-gray-300
+            focus:ring-blue-500 focus:border-blue-500 rounded-lg resize-none;
+      }
+}
