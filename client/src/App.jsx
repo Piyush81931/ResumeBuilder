@@ -5,10 +5,12 @@ import Preview from "./pages/Preview";
 import Layout from "./pages/Layout";
 import Dashboard from "./pages/Dashboard";
 import ResumeBuilder from "./pages/ResumeBuilder";
+import ResumeAnalyze from "./pages/ResumeAnalyze"; 
 import { useDispatch } from "react-redux";
 import api from "./configues/api";
 import { login, setLoading } from "./fetaures/authSlice";
 import {Toaster} from 'react-hot-toast'
+
 const App = () => {
   const dispatch = useDispatch();
   const getUserData = async ()=>{
@@ -39,9 +41,9 @@ const App = () => {
         <Route path="app" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="builder/:resumeId" element={<ResumeBuilder />} />
+           <Route path="analyze/:resumeId" element={<ResumeAnalyze />} /> 
         </Route>
         <Route path="view/:resumeId" element={<Preview />} />
-
       </Routes>
     </>
   );

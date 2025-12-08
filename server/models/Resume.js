@@ -44,6 +44,11 @@ const resumeSchema = mongoose.Schema({
       gpa: { type: String },
     },
   ],
+  resumeText: {
+  type: String,
+  default: "",
+},
+
 },{timestamps:true,minimize:false});
 
 const Resume = mongoose.model("Resume", resumeSchema)

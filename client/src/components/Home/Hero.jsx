@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 const Hero = () => {
-  const{user} = useSelector(state=>state.auth)
+  const { user } = useSelector((state) => state.auth);
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Refs for navbar animation
@@ -242,9 +242,12 @@ const Hero = () => {
             >
               Login
             </Link>
-            <Link to='/app' className="hidden md:block px-8 py-2 bg-blue-500 
+            <Link
+              to="/app"
+              className="hidden md:block px-8 py-2 bg-blue-500 
             hover:bg-blue-700 active:scale-95 transition-all rounded-full text-white"
-            hidden={!user}>
+              hidden={!user}
+            >
               Dashboard
             </Link>
           </div>
