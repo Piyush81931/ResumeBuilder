@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import gsap from "gsap";
+import html2pdf from 'html2pdf.js';
+
 import {
   ArrowLeftIcon,
   Briefcase,
@@ -32,7 +34,7 @@ import toast from "react-hot-toast";
 
 const ResumeBuilder = () => {
   const { resumeId } = useParams();
-  const { token } = useSelector((state) => state.auth);
+  const { token, classId } = useSelector((state) => state.auth);
   const [resumeData, setResumeData] = useState({
     _id: "",
     title: "",
@@ -108,10 +110,10 @@ const ResumeBuilder = () => {
     }
   };
 
-  const downlaodResume = () => {
+  const downloadResume = () => {
     window.print();
   };
-
+  
   const saveResume = async () => {
     try {
       let updateResumeData = structuredClone(resumeData);
@@ -489,7 +491,7 @@ const ResumeBuilder = () => {
                   {resumeData.public ? "Public" : "Private"}
                 </button>
                 <button
-                  onClick={downlaodResume}
+                  onClick={downloadResume}
                   className="flex items-center p-2 px-4 gap-2 text-xs bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600 rounded-lg ring-blue-300 hover:ring transition-colors"
                 >
                   <DownloadIcon className="size-4" /> Download

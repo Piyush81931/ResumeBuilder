@@ -252,3 +252,167 @@ Return JSON in this exact format:
     res.status(500).json({ message: error.message });
   }
 };
+// Add this to your aiController.js
+
+export const analyzeJobMatch = async (req, res) => {
+  try {
+    const { resumeId } = req.params;
+    const { jobDescription } = req.body;
+
+    if (!jobDescription || jobDescription.trim().length < 50) {
+      return res.status(400).json({ 
+        message: "Please provide a valid job description (at least 50 characters)" 
+      });
+    }
+
+    const resume = await Resume.findById(resumeId);
+    if (!resume) {
+      return res.status(404).json({ message: "Resume not found" });
+    }
+
+    // Prepare resume data for AI
+    const resumeText = `
+Professional Summary: ${resume.professional_summary || 'Not provided'}
+
+Experience:
+${resume.experience?.map(exp => `
+- ${exp.position} at ${exp.company} (${exp.start_date} - ${exp.end_date || 'Present'})
+  ${exp.description || ''}
+`).join('\n') || 'No experience listed'}
+
+Education:
+${resume.education?.map(edu => `
+- ${edu.degree} in ${edu.field} from ${edu.institution} (${edu.graduation_year})
+`).join('\n') || 'No education listed'}
+
+Skills:
+${resume.skills?.join(', ') || 'No skills listed'}
+
+Projects:
+${resume.project?.map(proj => `
+- ${proj.title}: ${proj.description}
+  Technologies: ${proj.technologies}
+`).join('\n') || 'No projects listed'}
+    `.trim();
+
+    console.log("Analyzing job match for resume:", resumeId);
+
+    const prompt = `You are an expert resume analyzer and ATS specialist. Analyze how well this resume matches the job description.
+
+CRITICAL: Return ONLY valid JSON, no markdown, no extra text, no code blocks.
+
+Job Description:
+${jobDescription}
+
+Resume:
+${resumeText}
+
+Analyze and return this EXACT JSON structure:
+{
+  "matchScore": 75,
+  "strongMatches": [
+    {
+      "skill": "React",
+      "evidence": "3 years experience mentioned in resume",
+      "relevance": "Required skill in job description"
+    }
+  ],
+  "weakMatches": [
+    {
+      "skill": "Communication",
+      "issue": "Mentioned only once in resume",
+      "suggestion": "Add examples of cross-functional collaboration"
+    }
+  ],
+  "missingSkills": [
+    {
+      "skill": "AWS",
+      "priority": "CRITICAL",
+      "question": "Do you have AWS experience?"
+    }
+  ],
+  "missingKeywords": [
+    "scalable",
+    "cross-functional",
+    "maintainable"
+  ],
+  "tailoredSections": {
+    "professional_summary": "Enhanced summary with job keywords...",
+    "experience": [
+      {
+        "position": "Same as original",
+        "company": "Same as original",
+        "start_date": "Same as original",
+        "end_date": "Same as original",
+        "description": "Enhanced description with job-specific keywords and achievements"
+      }
+    ],
+    "skills": ["Enhanced skills list with relevant keywords"]
+  },
+  "improvementTips": [
+    "Add quantifiable metrics to achievements",
+    "Use action verbs from job description"
+  ],
+  "newMatchScore": 92
+}
+
+Rules:
+1. matchScore = 0-100 based on how well resume matches job
+2. strongMatches = skills/experience user has that match job (list top 5)
+3. weakMatches = things mentioned but need emphasis (max 3)
+4. missingSkills = required skills not in resume (max 5, prioritize)
+5. missingKeywords = ATS keywords missing from resume (max 8)
+6. tailoredSections = improved versions using job keywords naturally
+7. newMatchScore = projected score after applying tailored content
+8. Keep all tailoring professional and truthful - enhance, don't fabricate
+9. Maintain original data structure for experience and education
+10. Only enhance descriptions and summaries with relevant keywords`;
+
+    const completion = await ai.chat.completions.create({
+      model: process.env.OPENAI_MODEL,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const aiOutput = completion?.choices?.[0]?.message?.content || completion?.output_text;
+    if (!aiOutput) {
+      return res.status(500).json({ message: "AI did not return any data." });
+    }
+
+    let analysis;
+    try {
+      let cleanOutput = aiOutput.trim();
+      cleanOutput = cleanOutput.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+      cleanOutput = cleanOutput.trim();
+      
+      analysis = JSON.parse(cleanOutput);
+    } catch (err) {
+      console.error("Failed to parse AI response:", aiOutput);
+      return res.status(500).json({ 
+        message: "Failed to parse AI analysis.",
+        debug: aiOutput 
+      });
+    }
+
+    // Save the job match analysis
+    const jobMatch = {
+      jobDescription,
+      analysis,
+      createdAt: new Date()
+    };
+
+    res.status(200).json({ 
+      success: true, 
+      analysis,
+      originalResume: {
+        professional_summary: resume.professional_summary,
+        experience: resume.experience,
+        education: resume.education,
+        skills: resume.skills,
+        project: resume.project
+      }
+    });
+  } catch (error) {
+    console.error("Job Match Analysis Error:", error.message);
+    res.status(500).json({ message: error.message });
+  }
+};

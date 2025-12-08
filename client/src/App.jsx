@@ -10,6 +10,7 @@ import { useDispatch } from "react-redux";
 import api from "./configues/api";
 import { login, setLoading } from "./fetaures/authSlice";
 import {Toaster} from 'react-hot-toast'
+import JobMatching from "./pages/JobMatching";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -41,7 +42,8 @@ const App = () => {
         <Route path="app" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="builder/:resumeId" element={<ResumeBuilder />} />
-           <Route path="analyze/:resumeId" element={<ResumeAnalyze />} /> 
+           <Route path="analyze/:resumeId" element={<ResumeAnalyze />} />
+           <Route path="job-match/:resumeId" element={<JobMatching />} /> 
         </Route>
         <Route path="view/:resumeId" element={<Preview />} />
       </Routes>

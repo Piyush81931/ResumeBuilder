@@ -5,7 +5,8 @@ const authSlice = createSlice({
     initialState:{
         token:null,
         user:null,
-        loading:true
+        loading:true,
+        classId: 'resume-id'
     },
     reducers: {
         login: (state,action)=>{
