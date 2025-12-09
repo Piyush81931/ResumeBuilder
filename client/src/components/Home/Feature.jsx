@@ -1,254 +1,286 @@
-import { Zap } from "lucide-react";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
+import { Sparkles, Wand2, Layout, Download } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-const Title = ({ title, description }) => (
-  <div className="text-center max-w-2xl mx-auto my-8">
-    <h2 className="text-3xl md:text-4xl font-semibold text-slate-900 mb-3">
-      {title}
-    </h2>
-    <p className="text-slate-600">{description}</p>
-  </div>
-);
+gsap.registerPlugin(ScrollTrigger);
+
+const theme = {
+  bg: '#faedcd',
+  text: '#99582a',
+  primary: '#bb9457',
+  secondary: '#d4a373',
+  surface: '#f8f1de',
+};
 
 const Feature = () => {
-  const [isHover, setIsHover] = useState(false);
-  
-  // Refs for scroll animation
-  const tagRef = useRef(null);
-  const titleRef = useRef(null);
-  const imageRef = useRef(null);
-  const featuresRef = useRef([]);
   const sectionRef = useRef(null);
-  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    const observerOptions = {
-      threshold: 0.4, // Trigger when 20% of element is visible
-      rootMargin: '0px'
-    };
-
-    const observerCallback = (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
-          
-          // Tag animation
-          if (tagRef.current) {
-            tagRef.current.animate([
-              { opacity: 0, transform: 'translateY(20px)' },
-              { opacity: 1, transform: 'translateY(0)' }
-            ], {
-              duration: 600,
-              easing: 'ease-out',
-              fill: 'forwards'
-            });
-          }
-
-          // Title animation
-          if (titleRef.current) {
-            titleRef.current.animate([
-              { opacity: 0, transform: 'translateY(20px)' },
-              { opacity: 1, transform: 'translateY(0)' }
-            ], {
-              duration: 600,
-              delay: 150,
-              easing: 'ease-out',
-              fill: 'forwards'
-            });
-          }
-
-          // Image animation - slide from left
-          if (imageRef.current) {
-            imageRef.current.animate([
-              { opacity: 0, transform: 'translateX(-50px)' },
-              { opacity: 1, transform: 'translateX(0)' }
-            ], {
-              duration: 800,
-              delay: 300,
-              easing: 'ease-out',
-              fill: 'forwards'
-            });
-          }
-
-          // Features animation - staggered fade up
-          featuresRef.current.forEach((feature, index) => {
-            if (feature) {
-              feature.animate([
-                { opacity: 0, transform: 'translateY(30px)' },
-                { opacity: 1, transform: 'translateY(0)' }
-              ], {
-                duration: 700,
-                delay: 500 + (index * 450),
-                easing: 'ease-out',
-                fill: 'forwards'
-              });
-            }
-          });
+    const ctx = gsap.context(() => {
+      // Badge Animation
+      gsap.from('.feature-badge', {
+        opacity: 0,
+        y: 30,
+        duration: 0.8,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 80%",
+          toggleActions: "play none none reverse"
         }
       });
-    };
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-    
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+      // Title Animation
+      gsap.from('.feature-title', {
+        opacity: 0,
+        y: 40,
+        duration: 1,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: '.feature-title',
+          start: "top 85%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      // Image Parallax (Fixed)
+      gsap.to('.feature-image', {
+        yPercent: -15,
+        ease: "none",
+        scrollTrigger: {
+          trigger: '.feature-image-container',
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true
+        }
+      });
+
+      // Feature Cards - Fixed Sequential Animation (ONE BY ONE)
+      const featureCards = gsap.utils.toArray('.feature-card');
+      
+      featureCards.forEach((card, i) => {
+        gsap.fromTo(card, 
+          { 
+            opacity: 0, 
+            x: -50 
+          },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 0.8,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: card,
+              start: "top 90%",
+              toggleActions: "play none none reverse"
+            },
+            // This ensures cards appear ONE BY ONE with delay
+            delay: i * 0.15
+          }
+        );
+      });
+
+      // Floating Animation for Icons
+      gsap.utils.toArray('.feature-icon').forEach((icon) => {
+        gsap.to(icon, {
+          y: -8,
+          duration: 2,
+          ease: "sine.inOut",
+          repeat: -1,
+          yoyo: true
+        });
+      });
+
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const features = [
+    {
+      icon: <Wand2 size={24} />,
+      title: "AI-Powered Enhancement",
+      description: "Transform basic bullet points into powerful achievements with one click. Our AI analyzes and enhances your content.",
+      color: theme.primary
+    },
+    {
+      icon: <Layout size={24} />,
+      title: "Live Preview Editor",
+      description: "See changes instantly with split-screen editing. Choose templates, customize colors, and export professional PDFs.",
+      color: theme.secondary
+    },
+    {
+      icon: <Download size={24} />,
+      title: "Smart Export & Analysis",
+      description: "Download ATS-optimized resumes. Get instant scoring, identify issues, and match against job descriptions.",
+      color: theme.primary
     }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
-      }
-    };
-  }, [hasAnimated]);
+  ];
 
   return (
-    <div
+    <section 
       id="features"
-      className="flex flex-col items-center my-10 scroll-mt-12"
       ref={sectionRef}
+      className="py-24 px-6 md:px-16 lg:px-24 xl:px-40 scroll-mt-20 relative overflow-hidden"
+      style={{ backgroundColor: theme.bg }}
     >
-      {/* Tag */}
+      {/* Background Decoration */}
       <div 
-        className="flex items-center gap-2 text-sm text-[#1e3a8a] bg-[#e0f2fe] border border-blue-200 rounded-full px-4 py-1"
-        ref={tagRef}
-        style={{ opacity: 0 }}
-      >
-        <Zap width={14} />
-        <span>Simple process</span>
-      </div>
-      
-      <div ref={titleRef} style={{ opacity: 0 }}>
-        <Title
-          title="Build your resume"
-          description="Our streamlined process helps you create 
-          professional resume in minutes with intelligent
-          AI-powered tools and fearures."
-        />
-      </div>
+        className="absolute top-20 left-10 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none"
+        style={{ background: `radial-gradient(circle, ${theme.secondary} 0%, transparent 70%)` }}
+      />
 
-      <div className="flex flex-col md:flex-row items-center justify-center mt-6 xl:-mt-10">
-        <img
-          ref={imageRef}
-          className="max-w-2xl w-full xl:-ml-32"
-          src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/features/group-image-1.png"
-          alt=""
-          style={{ opacity: 0 }}
-        />
-        <div
-          className="px-4 md:px-0 mt-6 md:mt-0"
-          onMouseEnter={() => setIsHover(true)}
-          onMouseLeave={() => setIsHover(false)}
-        >
-          {/* Feature 1 */}
-          <div 
-            className="flex items-center justify-center gap-6 max-w-md group cursor-pointer mb-4"
-            ref={(el) => featuresRef.current[0] = el}
-            style={{ opacity: 0 }}
-          >
-            <div className="p-6 border border-transparent rounded-xl flex gap-4 transition-colors bg-white group-hover:bg-[#dbeafe] group-hover:border-[#2563eb]">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-6 stroke-[#1e40af] group-hover:stroke-[#1e40af]"
-              >
-                <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" />
-                <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
-              </svg>
-              <div className="space-y-2">
-                <h3 className="text-base font-semibold text-[#1e3a8a]">
-                  AI Resume Builder
-                </h3>
-                <p className="text-sm text-slate-600 max-w-xs">
-                 Create professional resumes instantly using AI-powered suggestions tailored to your career.
-                </p>
-              </div>
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Section Header */}
+        <div className="text-center mb-20">
+          <div className="feature-badge flex items-center justify-center gap-2 mb-6">
+            <div 
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border"
+              style={{ borderColor: theme.secondary, color: theme.text }}
+            >
+              <Sparkles size={16} />
+              <span className="text-sm font-bold uppercase tracking-wider">Simple Process</span>
             </div>
           </div>
 
-          {/* Feature 2 */}
-          <div 
-            className="flex items-center justify-center gap-6 max-w-md group cursor-pointer mb-4"
-            ref={(el) => featuresRef.current[1] = el}
-            style={{ opacity: 0 }}
-          >
-            <div className="p-6 group-hover:bg-[#dbeafe] border border-transparent group-hover:border-[#2563eb] flex gap-4 rounded-xl transition-colors">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-6 stroke-[#1e40af]"
+          <div className="feature-title">
+            <h2 
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+              style={{ color: theme.text }}
+            >
+              Build your resume with{" "}
+              <span className="hover-text-effect" style={{ color: theme.primary }}>intelligence</span>
+            </h2>
+            <p 
+              className="text-lg md:text-xl max-w-2xl mx-auto opacity-80"
+              style={{ color: theme.text }}
+            >
+              Our streamlined process helps you create professional resumes in minutes with intelligent AI-powered tools and features.
+            </p>
+          </div>
+        </div>
+
+        {/* Content Grid */}
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left Side - Image */}
+          <div className="relative order-2 lg:order-1">
+            <div className="feature-image-container relative rounded-2xl overflow-hidden shadow-2xl border-4" style={{ borderColor: theme.surface }}>
+              <img
+                src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/features/group-image-1.png"
+                alt="Resume Builder Interface"
+                className="feature-image w-full h-auto"
+              />
+              
+              {/* Overlay Badge */}
+              <div 
+                className="absolute bottom-6 left-6 px-4 py-2 rounded-full backdrop-blur-md font-semibold text-sm shadow-lg"
+                style={{ 
+                  backgroundColor: 'rgba(250, 237, 205, 0.9)',
+                  color: theme.text
+                }}
               >
-                <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" />
-              </svg>
-              <div className="space-y-2">
-                <h3 className="text-base font-semibold text-[#1e3a8a]">
-                  Real-Time Editing
-                </h3>
-                <p className="text-sm text-slate-600 max-w-xs">
-                  Edit and format your resume in real-time with smart AI recommendations.
-                </p>
+                ✨ Live Editor Preview
               </div>
             </div>
+
+            {/* Decorative Element */}
+            <div 
+              className="absolute -bottom-6 -right-6 w-48 h-48 rounded-full blur-2xl opacity-30 -z-10"
+              style={{ backgroundColor: theme.primary }}
+            />
           </div>
 
-          {/* Feature 3 */}
-          <div 
-            className="flex items-center justify-center gap-6 max-w-md group cursor-pointer"
-            ref={(el) => featuresRef.current[2] = el}
-            style={{ opacity: 0 }}
-          >
-            <div className="p-6 group-hover:bg-[#dbeafe] border border-transparent group-hover:border-[#2563eb] flex gap-4 rounded-xl transition-colors">
-              <svg
-                className="size-6 stroke-[#1e40af]"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+          {/* Right Side - Features (Cards appear ONE BY ONE) */}
+          <div className="space-y-6 order-1 lg:order-2">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="feature-card group relative p-6 rounded-2xl transition-all duration-500 hover:-translate-y-2 hover-trigger shadow-lg cursor-pointer"
+                style={{ backgroundColor: '#fff' }}
               >
-                <path d="M12 15V3" />
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <path d="m7 10 5 5 5-5" />
-              </svg>
-              <div className="space-y-2">
-                <h3 className="text-base font-semibold text-[#1e3a8a]">
-                  Download & Share
-                </h3>
-                <p className="text-sm text-slate-600 max-w-xs">
-                  Download your resume in multiple formats or share it directly with employers.
-                </p>
+                <div className="flex gap-5">
+                  {/* Icon */}
+                  <div 
+                    className="feature-icon flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-6"
+                    style={{ 
+                      backgroundColor: theme.surface,
+                      color: feature.color
+                    }}
+                  >
+                    {feature.icon}
+                  </div>
+
+                  {/* Content */}
+                  <div>
+                    <h3 
+                      className="text-xl font-bold mb-2 transition-all duration-300 group-hover:translate-x-1"
+                      style={{ color: theme.text }}
+                    >
+                      {feature.title}
+                    </h3>
+                    <p 
+                      className="text-sm leading-relaxed opacity-75 transition-opacity duration-300 group-hover:opacity-100"
+                      style={{ color: theme.text }}
+                    >
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Hover Border Effect */}
+                <div 
+                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none duration-300"
+                  style={{ 
+                    border: `2px solid ${theme.primary}`,
+                  }}
+                />
               </div>
-            </div>
+            ))}
           </div>
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="text-center mt-20">
+          <p 
+            className="text-lg mb-6 opacity-70"
+            style={{ color: theme.text }}
+          >
+            Join thousands of professionals who've landed their dream jobs
+          </p>
+          <button 
+            className="group px-8 py-4 rounded-full font-bold text-lg hover-trigger transition-all duration-300 hover:scale-105 shadow-lg relative overflow-hidden"
+            style={{ 
+              backgroundColor: theme.primary,
+              color: '#fff'
+            }}
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              Start Building Now 
+              <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+            </span>
+            {/* Hover effect background */}
+            <div 
+              className="absolute inset-0 translate-y-[101%] transition-transform duration-300 group-hover:translate-y-0"
+              style={{ backgroundColor: theme.text }}
+            />
+          </button>
         </div>
       </div>
 
+      {/* Enhanced Hover Text Animation */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-
-        * {
-            font-family: 'Poppins', sans-serif;
+        .hover-text-effect {
+          display: inline-block;
+          transition: all 0.3s ease;
+        }
+        
+        .hover-text-effect:hover {
+          transform: scale(1.05) translateY(-2px);
+          text-shadow: 0 4px 8px rgba(187, 148, 87, 0.3);
         }
       `}</style>
-    </div>
+    </section>
   );
 };
 

@@ -1,144 +1,123 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
+import { Users, Star } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-const Title = ({ title, description }) => (
-  <div className="text-center max-w-2xl mx-auto my-8">
-    <h2 className="text-3xl md:text-4xl font-semibold text-slate-900 mb-3">
-      {title}
-    </h2>
-    <p className="text-slate-600">{description}</p>
-  </div>
-);
+gsap.registerPlugin(ScrollTrigger);
+
+const theme = {
+  bg: '#faedcd',
+  text: '#99582a',
+  primary: '#bb9457',
+  secondary: '#d4a373',
+  surface: '#f8f1de',
+};
 
 const Testimonial = () => {
-  const [hasAnimated, setHasAnimated] = useState(false);
-  
-  // Refs for animation
-  const tagRef = useRef(null);
-  const titleRef = useRef(null);
+  const sectionRef = useRef(null);
   const marqueeRow1Ref = useRef(null);
   const marqueeRow2Ref = useRef(null);
-  const sectionRef = useRef(null);
 
   const cardsData = [
     {
-      image:
-        "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=200",
+      image: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=200",
       name: "Briar Martin",
-      handle: "@neilstellar",
+      handle: "@briardesigns",
+      role: "Senior Designer",
+      testimonial: "ResumAI's AI enhancement turned my bland resume into a compelling story. Got 3 interviews in the first week!"
     },
     {
-      image:
-        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200",
+      image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200",
       name: "Avery Johnson",
       handle: "@averywrites",
+      role: "Content Strategist",
+      testimonial: "The job tailor feature is a game-changer. I customize my resume for each position in under 5 minutes."
     },
     {
-      image:
-        "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60",
+      image: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60",
       name: "Jordan Lee",
       handle: "@jordantalks",
+      role: "Marketing Manager",
+      testimonial: "Resume analyzer caught issues I never noticed. My ATS score went from 67% to 94%!"
     },
     {
-      image:
-        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=60",
-      name: "Avery Johnson",
-      handle: "@averywrites",
+      image: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=60",
+      name: "Casey Brooks",
+      handle: "@caseytech",
+      role: "Software Engineer",
+      testimonial: "Finally, a resume builder that understands what recruiters actually want. The templates are gorgeous!"
     },
   ];
 
   useEffect(() => {
-    const observerOptions = {
-      threshold: 0.7,
-      rootMargin: '-100px 0px -100px 0px'
-    };
-
-    const observerCallback = (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
-          
-          // Tag animation
-          if (tagRef.current) {
-            tagRef.current.animate([
-              { opacity: 0, transform: 'translateY(20px)' },
-              { opacity: 1, transform: 'translateY(0)' }
-            ], {
-              duration: 600,
-              easing: 'ease-out',
-              fill: 'forwards'
-            });
-          }
-
-          // Title animation
-          if (titleRef.current) {
-            titleRef.current.animate([
-              { opacity: 0, transform: 'translateY(20px)' },
-              { opacity: 1, transform: 'translateY(0)' }
-            ], {
-              duration: 600,
-              delay: 150,
-              easing: 'ease-out',
-              fill: 'forwards'
-            });
-          }
-
-          // First marquee row - fade + slide up
-          if (marqueeRow1Ref.current) {
-            marqueeRow1Ref.current.animate([
-              { opacity: 0, transform: 'translateY(40px)' },
-              { opacity: 1, transform: 'translateY(0)' }
-            ], {
-              duration: 800,
-              delay: 300,
-              easing: 'ease-out',
-              fill: 'forwards'
-            });
-          }
-
-          // Second marquee row - fade + slide up
-          if (marqueeRow2Ref.current) {
-            marqueeRow2Ref.current.animate([
-              { opacity: 0, transform: 'translateY(40px)' },
-              { opacity: 1, transform: 'translateY(0)' }
-            ], {
-              duration: 800,
-              delay: 450,
-              easing: 'ease-out',
-              fill: 'forwards'
-            });
-          }
+    const ctx = gsap.context(() => {
+      // Badge Animation
+      gsap.from('.testimonial-badge', {
+        opacity: 0,
+        y: 30,
+        duration: 0.8,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 80%",
+          toggleActions: "play none none reverse"
         }
       });
-    };
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-    
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
+      // Title Animation
+      gsap.from('.testimonial-title', {
+        opacity: 0,
+        y: 40,
+        duration: 1,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: '.testimonial-title',
+          start: "top 85%",
+          toggleActions: "play none none reverse"
+        }
+      });
 
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
-      }
-    };
-  }, [hasAnimated]);
+      // Marquee Rows Fade In
+      [marqueeRow1Ref.current, marqueeRow2Ref.current].forEach((row, i) => {
+        gsap.from(row, {
+          opacity: 0,
+          y: 50,
+          duration: 1,
+          delay: i * 0.2,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: row,
+            start: "top 90%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
 
-  const CreateCard = ({ card }) => (
-    <div className="p-4 rounded-lg mx-4 shadow hover:shadow-lg transition-all duration-200 w-72 shrink-0 bg-white">
-      <div className="flex gap-2">
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const TestimonialCard = ({ card }) => (
+    <div 
+      className="p-6 rounded-2xl mx-4 shadow-lg hover:shadow-2xl transition-all duration-300 w-80 shrink-0 hover:-translate-y-1 hover-trigger"
+      style={{ backgroundColor: '#fff', borderLeft: `4px solid ${theme.primary}` }}
+    >
+      <div className="flex items-center gap-3 mb-4">
         <img
-          className="size-11 rounded-full"
+          className="w-12 h-12 rounded-full object-cover ring-2"
+          style={{ ringColor: theme.surface }}
           src={card.image}
-          alt="User Image"
+          alt={card.name}
         />
-        <div className="flex flex-col">
-          <div className="flex items-center gap-1">
-            <p>{card.name}</p>
+        <div className="flex-1">
+          <div className="flex items-center gap-1.5">
+            <p className="font-bold" style={{ color: theme.text }}>{card.name}</p>
             <svg
-              className="mt-0.5 fill-blue-500"
-              width="12"
-              height="12"
+              className="fill-current"
+              style={{ color: theme.primary }}
+              width="16"
+              height="16"
               viewBox="0 0 12 12"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -149,99 +128,158 @@ const Testimonial = () => {
               />
             </svg>
           </div>
-          <span className="text-xs text-slate-500">{card.handle}</span>
+          <p className="text-xs opacity-70" style={{ color: theme.text }}>{card.handle}</p>
+          <p className="text-xs font-semibold" style={{ color: theme.secondary }}>{card.role}</p>
         </div>
       </div>
-      <p className="text-sm py-4 text-gray-800">
-        Radiant made undercutting all of our competitors an absolute breeze.
+
+      {/* Stars */}
+      <div className="flex gap-1 mb-3">
+        {Array(5).fill(0).map((_, i) => (
+          <Star key={i} size={14} fill={theme.primary} color={theme.primary} />
+        ))}
+      </div>
+
+      <p className="text-sm leading-relaxed" style={{ color: theme.text }}>
+        "{card.testimonial}"
       </p>
     </div>
   );
 
   return (
-    <>
-      <div
-        id="testimonials"
-        className="flex flex-col items-center my-10 scroll-mt-12"
-        ref={sectionRef}
-      >
-        {/* Tag */}
-        <div 
-          className="flex items-center gap-2 text-sm text-[#1e3a8a] bg-[#e0f2fe] border border-blue-200 rounded-full px-4 py-1"
-          ref={tagRef}
-          style={{ opacity: 0 }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="stroke-blue-600"
-          >
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-          <span>Testimonials</span>
+    <section 
+      id="testimonials"
+      ref={sectionRef}
+      className="py-24 px-6 scroll-mt-20 overflow-hidden relative"
+      style={{ backgroundColor: theme.surface }}
+    >
+      {/* Background Decoration */}
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-3xl opacity-10 pointer-events-none"
+        style={{ backgroundColor: theme.primary }}
+      />
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <div className="testimonial-badge flex items-center justify-center gap-2 mb-6">
+            <div 
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border"
+              style={{ borderColor: theme.secondary, color: theme.text }}
+            >
+              <Users size={16} />
+              <span className="text-sm font-bold uppercase tracking-wider">Testimonials</span>
+            </div>
+          </div>
+
+          <div className="testimonial-title">
+            <h2 
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+              style={{ color: theme.text }}
+            >
+              Don't just take our{" "}
+              <span style={{ color: theme.primary }}>word for it</span>
+            </h2>
+            <p 
+              className="text-lg md:text-xl max-w-2xl mx-auto opacity-80"
+              style={{ color: theme.text }}
+            >
+              Hear from professionals who've transformed their careers with ResumAI. 
+              Join thousands of success stories.
+            </p>
+          </div>
         </div>
-        <div ref={titleRef} style={{ opacity: 0 }}>
-          <Title
-            title="Don't just take our words"
-            description="Hear what our users say about us.
-          we're always looking for ways to improve.
-          If you have a positive experience with us, leave a review."
+
+        {/* Marquee Row 1 */}
+        <div 
+          ref={marqueeRow1Ref}
+          className="marquee-row w-full overflow-hidden relative mb-6"
+        >
+          {/* Gradient Overlays */}
+          <div 
+            className="absolute left-0 top-0 h-full w-24 md:w-40 z-10 pointer-events-none"
+            style={{ background: `linear-gradient(to right, ${theme.surface}, transparent)` }}
+          />
+          <div 
+            className="marquee-inner flex min-w-[200%]"
+          >
+            {[...cardsData, ...cardsData].map((card, index) => (
+              <TestimonialCard key={`row1-${index}`} card={card} />
+            ))}
+          </div>
+          <div 
+            className="absolute right-0 top-0 h-full w-24 md:w-40 z-10 pointer-events-none"
+            style={{ background: `linear-gradient(to left, ${theme.surface}, transparent)` }}
           />
         </div>
+
+        {/* Marquee Row 2 - Reverse */}
+        <div 
+          ref={marqueeRow2Ref}
+          className="marquee-row w-full overflow-hidden relative"
+        >
+          <div 
+            className="absolute left-0 top-0 h-full w-24 md:w-40 z-10 pointer-events-none"
+            style={{ background: `linear-gradient(to right, ${theme.surface}, transparent)` }}
+          />
+          <div 
+            className="marquee-inner marquee-reverse flex min-w-[200%]"
+          >
+            {[...cardsData, ...cardsData].map((card, index) => (
+              <TestimonialCard key={`row2-${index}`} card={card} />
+            ))}
+          </div>
+          <div 
+            className="absolute right-0 top-0 h-full w-24 md:w-40 z-10 pointer-events-none"
+            style={{ background: `linear-gradient(to left, ${theme.surface}, transparent)` }}
+          />
+        </div>
+
+        {/* Bottom Stats */}
+        <div className="text-center mt-20">
+          <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+            <div>
+              <div className="text-3xl md:text-4xl font-bold mb-2" style={{ color: theme.primary }}>
+                4.9/5
+              </div>
+              <p className="text-sm opacity-70" style={{ color: theme.text }}>Average Rating</p>
+            </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold mb-2" style={{ color: theme.primary }}>
+                2,500+
+              </div>
+              <p className="text-sm opacity-70" style={{ color: theme.text }}>Happy Users</p>
+            </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold mb-2" style={{ color: theme.primary }}>
+                98%
+              </div>
+              <p className="text-sm opacity-70" style={{ color: theme.text }}>Success Rate</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div 
-        className="marquee-row w-full mx-auto max-w-5xl overflow-hidden relative"
-        ref={marqueeRow1Ref}
-        style={{ opacity: 0 }}
-      >
-        <div className="absolute left-0 top-0 h-full w-20 z-10 pointer-events-none bg-gradient-to-r from-white to-transparent"></div>
-        <div className="marquee-inner flex transform-gpu min-w-[200%] pt-10 pb-5">
-          {[...cardsData, ...cardsData].map((card, index) => (
-            <CreateCard key={index} card={card} />
-          ))}
-        </div>
-        <div className="absolute right-0 top-0 h-full w-20 md:w-40 z-10 pointer-events-none bg-gradient-to-l from-white to-transparent"></div>
-      </div>
-
-      <div 
-        className="marquee-row w-full mx-auto max-w-5xl overflow-hidden relative"
-        ref={marqueeRow2Ref}
-        style={{ opacity: 0 }}
-      >
-        <div className="absolute left-0 top-0 h-full w-20 z-10 pointer-events-none bg-gradient-to-r from-white to-transparent"></div>
-        <div className="marquee-inner marquee-reverse flex transform-gpu min-w-[200%] pt-10 pb-5">
-          {[...cardsData, ...cardsData].map((card, index) => (
-            <CreateCard key={index} card={card} />
-          ))}
-        </div>
-        <div className="absolute right-0 top-0 h-full w-20 md:w-40 z-10 pointer-events-none bg-gradient-to-l from-white to-transparent"></div>
-      </div>
+      {/* Marquee Animation */}
       <style>{`
-            @keyframes marqueeScroll {
-                0% { transform: translateX(0%); }
-                100% { transform: translateX(-50%); }
-            }
+        @keyframes marqueeScroll {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(-50%); }
+        }
 
-            .marquee-inner {
-                animation: marqueeScroll 25s linear infinite;
-            }
+        .marquee-inner {
+          animation: marqueeScroll 30s linear infinite;
+        }
 
-            .marquee-reverse {
-                animation-direction: reverse;
-            }
-        `}</style>
-    </>
+        .marquee-reverse {
+          animation-direction: reverse;
+        }
+
+        .marquee-row:hover .marquee-inner {
+          animation-play-state: paused;
+        }
+      `}</style>
+    </section>
   );
 };
 

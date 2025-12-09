@@ -1,472 +1,385 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { Sparkles, ArrowRight, Menu, X, Wand2, Target, BarChart3 } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+
+const theme = {
+  bg: '#faedcd',
+  text: '#99582a',
+  primary: '#bb9457',
+  secondary: '#d4a373',
+  surface: '#f8f1de',
+  border: '#d4a373'
+};
 
 const Hero = () => {
   const { user } = useSelector((state) => state.auth);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Refs for navbar animation
-  const logoRef = useRef(null);
-  const navItemsRef = useRef([]);
-  const navButtonsRef = useRef([]);
-
-  // Refs for hero section animation
-  const avatarsRef = useRef(null);
-  const headingRef = useRef(null);
-  const subtitleRef = useRef(null);
-  const ctaButtonsRef = useRef([]);
-  const trustTextRef = useRef(null);
-  const logosRef = useRef([]);
-
+  // GSAP Animation Setup
   useEffect(() => {
-    // Navbar animations
-    // Logo animation - appears first
-    if (logoRef.current) {
-      logoRef.current.animate(
-        [
-          { opacity: 0, transform: "translateY(-20px)" },
-          { opacity: 1, transform: "translateY(0)" },
-        ],
-        {
-          duration: 600,
-          delay: 100,
-          easing: "ease-out",
-          fill: "forwards",
-        }
-      );
-    }
+    const ctx = gsap.context(() => {
+      // Hero Text Reveal - Matching reference timing
+      const heroTl = gsap.timeline({ delay: 0.2 });
+      
+      heroTl.from('.hero-line', {
+        y: 100,
+        opacity: 0,
+        duration: 1.2,
+        stagger: 0.1,
+        ease: "power4.out",
+      })
+      .from('.hero-fade', {
+        opacity: 0,
+        y: 20,
+        duration: 1,
+        stagger: 0.1,
+        ease: "power2.out"
+      }, "-=0.8");
 
-    // Nav items animation - one by one
-    navItemsRef.current.forEach((item, index) => {
-      if (item) {
-        item.animate(
-          [
-            { opacity: 0, transform: "translateY(-20px)" },
-            { opacity: 1, transform: "translateY(0)" },
-          ],
+      // Feature Cards - One by one reveal
+      gsap.utils.toArray('.feature-card').forEach((card, index) => {
+        gsap.fromTo(card, 
+          { opacity: 0, y: 60 },
           {
-            duration: 500,
-            delay: 300 + index * 100,
-            easing: "ease-out",
-            fill: "forwards",
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            delay: index * 0.2, // Stagger delay
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: card,
+              start: "top 85%",
+              toggleActions: "play none none reverse"
+            }
           }
         );
-      }
-    });
-
-    // Nav buttons animation
-    navButtonsRef.current.forEach((button, index) => {
-      if (button) {
-        button.animate(
-          [
-            { opacity: 0, transform: "translateY(-20px)" },
-            { opacity: 1, transform: "translateY(0)" },
-          ],
-          {
-            duration: 500,
-            delay: 700 + index * 100,
-            easing: "ease-out",
-            fill: "forwards",
-          }
-        );
-      }
-    });
-
-    // Hero section animations - start after navbar completes (around 900ms)
-    const heroStartDelay = 1000;
-
-    // Avatars + Stars
-    if (avatarsRef.current) {
-      avatarsRef.current.animate(
-        [
-          { opacity: 0, transform: "translateY(30px)" },
-          { opacity: 1, transform: "translateY(0)" },
-        ],
-        {
-          duration: 700,
-          delay: heroStartDelay,
-          easing: "ease-out",
-          fill: "forwards",
-        }
-      );
-    }
-
-    // Main heading
-    if (headingRef.current) {
-      headingRef.current.animate(
-        [
-          { opacity: 0, transform: "translateY(30px)" },
-          { opacity: 1, transform: "translateY(0)" },
-        ],
-        {
-          duration: 700,
-          delay: heroStartDelay + 200,
-          easing: "ease-out",
-          fill: "forwards",
-        }
-      );
-    }
-
-    // Subtitle text
-    if (subtitleRef.current) {
-      subtitleRef.current.animate(
-        [
-          { opacity: 0, transform: "translateY(30px)" },
-          { opacity: 1, transform: "translateY(0)" },
-        ],
-        {
-          duration: 700,
-          delay: heroStartDelay + 400,
-          easing: "ease-out",
-          fill: "forwards",
-        }
-      );
-    }
-
-    // CTA Buttons
-    ctaButtonsRef.current.forEach((button, index) => {
-      if (button) {
-        button.animate(
-          [
-            { opacity: 0, transform: "translateY(30px) scale(0.9)" },
-            { opacity: 1, transform: "translateY(0) scale(1)" },
-          ],
-          {
-            duration: 600,
-            delay: heroStartDelay + 600 + index * 100,
-            easing: "ease-out",
-            fill: "forwards",
-          }
-        );
-      }
-    });
-
-    // Trust text
-    if (trustTextRef.current) {
-      trustTextRef.current.animate([{ opacity: 0 }, { opacity: 1 }], {
-        duration: 600,
-        delay: heroStartDelay + 900,
-        easing: "ease-out",
-        fill: "forwards",
       });
-    }
 
-    // Company logos - staggered
-    logosRef.current.forEach((logo, index) => {
-      if (logo) {
-        logo.animate(
-          [
-            { opacity: 0, transform: "translateY(20px)" },
-            { opacity: 1, transform: "translateY(0)" },
-          ],
-          {
-            duration: 500,
-            delay: heroStartDelay + 1100 + index * 80,
-            easing: "ease-out",
-            fill: "forwards",
-          }
-        );
+      // Stats Counter Animation
+      gsap.utils.toArray('.stat-number').forEach(stat => {
+        ScrollTrigger.create({
+          trigger: stat,
+          start: "top 80%",
+          onEnter: () => {
+            const target = parseInt(stat.getAttribute('data-target'));
+            gsap.to(stat, {
+              innerText: target,
+              duration: 2,
+              snap: { innerText: 1 },
+              ease: "power1.out"
+            });
+          },
+          once: true
+        });
+      });
+
+      // Marquee Animation (if you add it)
+      if (document.querySelector('.marquee-track')) {
+        gsap.to(".marquee-track", {
+          xPercent: -50,
+          ease: "none",
+          duration: 20,
+          repeat: -1
+        });
       }
     });
-  }, []);
 
-  const logos = [
-    "https://saasly.prebuiltui.com/assets/companies-logo/instagram.svg",
-    "https://saasly.prebuiltui.com/assets/companies-logo/framer.svg",
-    "https://saasly.prebuiltui.com/assets/companies-logo/microsoft.svg",
-    "https://saasly.prebuiltui.com/assets/companies-logo/huawei.svg",
-    "https://saasly.prebuiltui.com/assets/companies-logo/walmart.svg",
-  ];
+    return () => ctx.revert();
+  }, []);
 
   return (
     <>
-      <div className="min-h-screen pb-20">
+      <div className="min-h-screen relative" style={{ backgroundColor: theme.bg }}>
         {/* Navbar */}
-        <nav className="z-50 flex items-center justify-between w-full py-4 px-6 md:px-16 lg:px-24 xl:px-40 text-sm">
-          <a href="/" ref={logoRef} style={{ opacity: 0 }}>
-            <img src="/logo.svg" alt="logo" />
-          </a>
+        <nav 
+          className="fixed top-0 left-0 w-full z-50 flex items-center justify-between py-4 px-6 md:px-16 lg:px-24 xl:px-40 border-b backdrop-blur-md"
+          style={{ 
+            backgroundColor: 'rgba(250, 237, 205, 0.9)',
+            borderColor: 'rgba(153, 88, 42, 0.1)'
+          }}
+        >
+          <Link to="/" className="flex items-center gap-2 hover-trigger group">
+            <div 
+              className="w-10 h-10 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110"
+              style={{ backgroundColor: theme.primary }}
+            >
+              <Sparkles size={20} color="#fff" className="group-hover:animate-pulse" />
+            </div>
+            <span 
+              className="text-2xl font-bold tracking-tight transition-colors"
+              style={{ color: theme.text }}
+            >
+              ResumAI
+            </span>
+          </Link>
 
-          <div className="hidden md:flex items-center gap-8 transition duration-500 text-slate-800">
-            <a
-              href="#"
-              className="hover:text-[#2563eb] transition"
-              ref={(el) => (navItemsRef.current[0] = el)}
-              style={{ opacity: 0 }}
-            >
-              Home
-            </a>
-            <a
-              href="#features"
-              className="hover:text-[#2563eb] transition"
-              ref={(el) => (navItemsRef.current[1] = el)}
-              style={{ opacity: 0 }}
-            >
-              Features
-            </a>
-            <a
-              href="#testimonials"
-              className="hover:text-[#2563eb] transition"
-              ref={(el) => (navItemsRef.current[2] = el)}
-              style={{ opacity: 0 }}
-            >
-              Testimonials
-            </a>
-            <a
-              href="#contact"
-              className="hover:text-[#2563eb] transition"
-              ref={(el) => (navItemsRef.current[3] = el)}
-              style={{ opacity: 0 }}
-            >
-              Contact
-            </a>
-          </div>
-
-          <div className="flex gap-2">
-            <Link
-              to="/app?state=register"
-              className="hidden md:block px-6 py-2 bg-[#1e40af] hover:bg-[#2563eb] active:scale-95 transition-all rounded-full text-white"
-              ref={(el) => (navButtonsRef.current[0] = el)}
-              style={{ opacity: 0 }}
-              hidden={user}
-            >
-              Get started
-            </Link>
-            <Link
-              to="/app?state=login"
-              className="hidden md:block px-6 py-2 border active:scale-95 hover:bg-slate-50 transition-all rounded-full text-slate-700 hover:text-slate-900"
-              ref={(el) => (navButtonsRef.current[1] = el)}
-              style={{ opacity: 0 }}
-              hidden={user}
-            >
-              Login
-            </Link>
-            <Link
-              to="/app"
-              className="hidden md:block px-8 py-2 bg-blue-500 
-            hover:bg-blue-700 active:scale-95 transition-all rounded-full text-white"
-              hidden={!user}
-            >
-              Dashboard
-            </Link>
-          </div>
-
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="md:hidden active:scale-90 transition"
+          <div 
+            className="hidden md:flex items-center gap-8 text-sm font-medium"
+            style={{ color: theme.text }}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="26"
-              height="26"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="lucide lucide-menu"
+            {['Features', 'Testimonials', 'Contact'].map((item) => (
+              <a 
+                key={item}
+                href={`#${item.toLowerCase()}`} 
+                className="relative group hover-trigger opacity-80 hover:opacity-100 transition-opacity"
+              >
+                {item}
+                <span 
+                  className="absolute -bottom-1 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full" 
+                  style={{ backgroundColor: theme.primary }}
+                />
+              </a>
+            ))}
+          </div>
+
+          <div className="flex gap-3">
+            {!user ? (
+              <>
+                <Link
+                  to="/app?state=login"
+                  className="hidden md:block px-6 py-2 rounded-full font-semibold text-sm transition-all hover-trigger hover:scale-105"
+                  style={{ 
+                    border: `1px solid ${theme.text}`,
+                    color: theme.text,
+                    backgroundColor: theme.surface
+                  }}
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/app?state=register"
+                  className="hidden md:block px-6 py-2 rounded-full font-semibold text-sm transition-all hover:scale-105 hover-trigger hover:shadow-[0_0_20px_rgba(187,148,87,0.4)]"
+                  style={{ 
+                    backgroundColor: theme.text,
+                    color: theme.bg
+                  }}
+                >
+                  Get Started
+                </Link>
+              </>
+            ) : (
+              <Link
+                to="/app"
+                className="hidden md:block px-8 py-2 rounded-full font-semibold text-sm transition-all hover:scale-105 hover-trigger"
+                style={{ 
+                  backgroundColor: theme.primary,
+                  color: '#fff'
+                }}
+              >
+                Dashboard
+              </Link>
+            )}
+
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="md:hidden hover-trigger"
+              style={{ color: theme.text }}
             >
-              <path d="M4 5h16M4 12h16M4 19h16" />
-            </svg>
-          </button>
+              <Menu size={24} />
+            </button>
+          </div>
         </nav>
 
         {/* Mobile Menu */}
         <div
-          className={`fixed inset-0 z-[100] bg-black/40 text-black backdrop-blur flex flex-col items-center justify-center text-lg gap-8 md:hidden transition-transform duration-300 ${
-            menuOpen ? "translate-x-0" : "-translate-x-full"
+          className={`fixed inset-0 z-[100] flex flex-col items-center justify-center text-lg gap-8 md:hidden transition-transform duration-300 ${
+            menuOpen ? "translate-x-0" : "translate-x-full"
           }`}
+          style={{ backgroundColor: theme.bg }}
         >
-          <a href="#" className="text-white">
-            Home
-          </a>
-          <a href="#features" className="text-white">
+          <a href="#features" onClick={() => setMenuOpen(false)} style={{ color: theme.text }} className="hover-trigger">
             Features
           </a>
-          <a href="#testimonials" className="text-white">
+          <a href="#testimonials" onClick={() => setMenuOpen(false)} style={{ color: theme.text }} className="hover-trigger">
             Testimonials
           </a>
-          <a href="#contact" className="text-white">
+          <a href="#contact" onClick={() => setMenuOpen(false)} style={{ color: theme.text }} className="hover-trigger">
             Contact
           </a>
           <button
             onClick={() => setMenuOpen(false)}
-            className="active:ring-3 active:ring-white aspect-square size-10 p-1 items-center justify-center bg-[#1e40af] hover:bg-[#2563eb] transition text-white rounded-md flex"
+            className="p-3 rounded-full hover-trigger"
+            style={{ backgroundColor: theme.text, color: theme.bg }}
           >
-            X
+            <X size={24} />
           </button>
         </div>
 
         {/* Hero Section */}
-        <div className="relative flex flex-col items-center justify-center text-sm px-4 md:px-16 lg:px-24 xl:px-40 text-black">
-          <div className="absolute top-28 xl:top-10 -z-10 left-1/4 size-72 sm:size-96 xl:size-120 2xl:size-132 bg-[#3b82f6] blur-[100px] opacity-30"></div>
+        <section className="relative pt-32 pb-20 px-6 md:px-16 lg:px-24 xl:px-40 overflow-hidden">
+          {/* Glow Effects */}
+          <div 
+            className="absolute top-0 right-0 w-[60vw] h-[60vw] pointer-events-none blur-3xl"
+            style={{ background: `radial-gradient(circle, rgba(187,148,87,0.15) 0%, transparent 70%)` }}
+          />
 
-          {/* Avatars + Stars */}
-          <div
-            className="flex items-center mt-24"
-            ref={avatarsRef}
-            style={{ opacity: 0 }}
-          >
-            <div className="flex -space-x-3 pr-3">
-              <img
-                src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200"
-                alt="user3"
-                className="size-8 object-cover rounded-full border-2 border-white hover:-translate-y-0.5 transition z-[1]"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=200"
-                alt="user1"
-                className="size-8 object-cover rounded-full border-2 border-white hover:-translate-y-0.5 transition z-2"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200"
-                alt="user2"
-                className="size-8 object-cover rounded-full border-2 border-white hover:-translate-y-0.5 transition z-[3]"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200"
-                alt="user3"
-                className="size-8 object-cover rounded-full border-2 border-white hover:-translate-y-0.5 transition z-[4]"
-              />
-              <img
-                src="https://randomuser.me/api/portraits/men/75.jpg"
-                alt="user5"
-                className="size-8 rounded-full border-2 border-white hover:-translate-y-0.5 transition z-[5]"
-              />
-            </div>
-
-            <div>
-              <div className="flex">
-                {Array(5)
-                  .fill(0)
-                  .map((_, i) => (
-                    <svg
-                      key={i}
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="lucide lucide-star text-transparent fill-[#2563eb]"
-                      aria-hidden="true"
-                    >
-                      <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path>
-                    </svg>
-                  ))}
+          <div className="max-w-6xl mx-auto relative z-10">
+            {/* Badge */}
+            <div className="flex justify-center mb-8">
+              <div className="hero-fade flex items-center gap-2 px-4 py-2 rounded-full border" style={{ borderColor: theme.secondary, color: theme.secondary }}>
+                <Sparkles size={16} />
+                <span className="text-xs font-bold uppercase tracking-wider">AI-Powered Platform</span>
               </div>
-              <p className="text-sm text-gray-700">Used by 10,000+ users</p>
+            </div>
+
+            {/* Main Heading with proper overflow hidden */}
+            <div className="text-center mb-6">
+              <div className="overflow-hidden">
+                <h1 className="hero-line text-5xl md:text-7xl lg:text-8xl font-bold leading-tight" style={{ color: theme.text }}>
+                  Craft your
+                </h1>
+              </div>
+              <div className="overflow-hidden">
+                <h1 className="hero-line text-5xl md:text-7xl lg:text-8xl font-bold italic" style={{ color: theme.primary }}>
+                  dream career
+                </h1>
+              </div>
+            </div>
+
+            {/* Subtitle */}
+            <p 
+              className="hero-fade text-lg md:text-xl text-center max-w-2xl mx-auto mb-10 opacity-80"
+              style={{ color: theme.text }}
+            >
+              AI-powered resume builder with instant enhancement, smart analysis, and job matching. 
+              Stand out from the crowd.
+            </p>
+
+            {/* CTA Buttons with hover effects */}
+            <div className="hero-fade flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+              <Link
+                to="/app"
+                className="group relative px-8 py-4 rounded-full font-bold text-lg flex items-center gap-2 hover-trigger transition-transform hover:-translate-y-1 shadow-lg overflow-hidden"
+                style={{ backgroundColor: theme.primary, color: '#fff' }}
+              >
+                <span className="relative z-10">Start Building Free</span>
+                <ArrowRight size={20} className="relative z-10 group-hover:translate-x-1 transition-transform" />
+                <div 
+                  className="absolute inset-0 translate-y-[101%] transition-transform duration-300 group-hover:translate-y-0"
+                  style={{ backgroundColor: theme.text }}
+                />
+              </Link>
+              <button
+                className="px-8 py-4 rounded-full border font-bold text-lg hover-trigger transition-all hover:scale-105"
+                style={{ 
+                  borderColor: theme.text, 
+                  color: theme.text,
+                  backgroundColor: theme.surface
+                }}
+              >
+                View Demo
+              </button>
+            </div>
+
+            {/* Stats */}
+            <div className="hero-fade grid grid-cols-3 gap-8 max-w-3xl mx-auto text-center">
+              <div>
+                <div className="stat-number text-3xl md:text-4xl font-bold" style={{ color: theme.primary }} data-target="10000">0</div>
+                <p className="text-sm opacity-70" style={{ color: theme.text }}>Active Users</p>
+              </div>
+              <div>
+                <div className="stat-number text-3xl md:text-4xl font-bold" style={{ color: theme.primary }} data-target="95">0</div>
+                <p className="text-sm opacity-70" style={{ color: theme.text }}>Success Rate</p>
+              </div>
+              <div>
+                <div className="stat-number text-3xl md:text-4xl font-bold" style={{ color: theme.primary }} data-target="50000">0</div>
+                <p className="text-sm opacity-70" style={{ color: theme.text }}>Resumes Created</p>
+              </div>
             </div>
           </div>
+        </section>
 
-          {/* Headline + CTA */}
-          <h1
-            className="text-5xl md:text-6xl font-semibold max-w-5xl text-center mt-4 md:leading-[70px]"
-            ref={headingRef}
-            style={{ opacity: 0 }}
-          >
-            Land your dream job with an{" "}
-            <span className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] bg-clip-text text-transparent text-nowrap">
-              AI-powered
-            </span>{" "}
-            resume.
-          </h1>
+        {/* Feature Cards */}
+        <section className="py-20 px-6 md:px-16 lg:px-24 xl:px-40">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl md:text-5xl font-bold text-center mb-16" style={{ color: theme.text }}>
+              Powered by <span style={{ color: theme.primary }}>AI Intelligence</span>
+            </h2>
 
-          <p
-            className="max-w-md text-center text-base my-7"
-            ref={subtitleRef}
-            style={{ opacity: 0 }}
-          >
-            Credit, edit and download professional resumes with AI-powered
-            assistance
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="flex items-center gap-4">
-            <a
-              href="/app"
-              className="bg-[#1e40af] hover:bg-[#2563eb] text-white rounded-full px-9 h-12 m-1 ring-offset-2 ring-1 ring-[#3b82f6] flex items-center transition-colors"
-              ref={(el) => (ctaButtonsRef.current[0] = el)}
-              style={{ opacity: 0 }}
-            >
-              Get started
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-arrow-right ml-1 size-4"
-                aria-hidden="true"
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* AI Enhance Feature */}
+              <div 
+                className="feature-card group p-8 rounded-2xl transition-all duration-500 hover:-translate-y-2 hover-trigger shadow-lg"
+                style={{ backgroundColor: '#fff' }}
               >
-                <path d="M5 12h14"></path>
-                <path d="m12 5 7 7-7 7"></path>
-              </svg>
-            </a>
-            <button
-              className="flex items-center gap-2 border border-slate-400 hover:bg-[#e0f2fe] transition rounded-full px-7 h-12 text-slate-700"
-              ref={(el) => (ctaButtonsRef.current[1] = el)}
-              style={{ opacity: 0 }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-video size-5"
-                aria-hidden="true"
+                <div 
+                  className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110"
+                  style={{ backgroundColor: theme.surface }}
+                >
+                  <Wand2 size={32} style={{ color: theme.primary }} className="group-hover:rotate-12 transition-transform" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 group-hover:text-[#bb9457] transition-colors" style={{ color: theme.text }}>
+                  AI Enhance
+                </h3>
+                <p className="opacity-70 leading-relaxed" style={{ color: theme.text }}>
+                  Transform basic descriptions into powerful achievements. One click turns "managed team" into compelling results-driven content.
+                </p>
+              </div>
+
+              {/* Resume Analyzer */}
+              <div 
+                className="feature-card group p-8 rounded-2xl transition-all duration-500 hover:-translate-y-2 hover-trigger shadow-lg"
+                style={{ backgroundColor: '#fff' }}
               >
-                <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path>
-                <rect x="2" y="6" width="14" height="12" rx="2"></rect>
-              </svg>
-              <span>Try demo</span>
-            </button>
+                <div 
+                  className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110"
+                  style={{ backgroundColor: theme.surface }}
+                >
+                  <BarChart3 size={32} style={{ color: theme.primary }} className="group-hover:scale-110 transition-transform" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 group-hover:text-[#bb9457] transition-colors" style={{ color: theme.text }}>
+                  Resume Analyzer
+                </h3>
+                <p className="opacity-70 leading-relaxed" style={{ color: theme.text }}>
+                  Get instant scores, identify issues, and discover wins. Fix problems before recruiters see them with our smart analysis.
+                </p>
+              </div>
+
+              {/* Job Tailor */}
+              <div 
+                className="feature-card group p-8 rounded-2xl transition-all duration-500 hover:-translate-y-2 hover-trigger shadow-lg"
+                style={{ backgroundColor: '#fff' }}
+              >
+                <div 
+                  className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110"
+                  style={{ backgroundColor: theme.surface }}
+                >
+                  <Target size={32} style={{ color: theme.primary }} className="group-hover:rotate-12 transition-transform" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 group-hover:text-[#bb9457] transition-colors" style={{ color: theme.text }}>
+                  AI Job Tailor
+                </h3>
+                <p className="opacity-70 leading-relaxed" style={{ color: theme.text }}>
+                  Paste any job description. See what's missing. Auto-fix alignment issues. Get the perfect match every time.
+                </p>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <p
-            className="py-6 text-slate-600 mt-14"
-            ref={trustTextRef}
-            style={{ opacity: 0 }}
-          >
-            Trusting by leading brands, including
+        {/* Trusted By Section */}
+        <section className="py-12 px-6" style={{ backgroundColor: theme.secondary }}>
+          <p className="text-center text-sm font-medium mb-6 opacity-80" style={{ color: theme.text }}>
+            Trusted by professionals at leading companies
           </p>
-
-          <div
-            className="flex flex-wrap justify-between max-sm:justify-center gap-6 max-w-3xl w-full mx-auto py-4"
-            id="logo-container"
-          >
-            {logos.map((logo, index) => (
-              <img
-                key={index}
-                src={logo}
-                alt="logo"
-                className="h-6 w-auto max-w-xs"
-              />
+          <div className="flex flex-wrap justify-center items-center gap-8 max-w-4xl mx-auto opacity-60">
+            {[
+              "https://saasly.prebuiltui.com/assets/companies-logo/instagram.svg",
+              "https://saasly.prebuiltui.com/assets/companies-logo/framer.svg",
+              "https://saasly.prebuiltui.com/assets/companies-logo/microsoft.svg",
+              "https://saasly.prebuiltui.com/assets/companies-logo/huawei.svg",
+              "https://saasly.prebuiltui.com/assets/companies-logo/walmart.svg",
+            ].map((logo, i) => (
+              <img key={i} src={logo} alt="company" className="h-6 grayscale hover:grayscale-0 transition-all hover:scale-110" />
             ))}
           </div>
-        </div>
+        </section>
       </div>
-
-      <style>
-        {`
-          @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-
-          * {
-              font-family: 'Poppins', sans-serif;
-          }
-        `}
-      </style>
     </>
   );
 };

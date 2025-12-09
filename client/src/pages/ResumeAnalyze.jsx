@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeftIcon, Sparkles, Wand2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Wand2, TrendingUp, Award, Zap } from "lucide-react";
 import { useSelector } from "react-redux";
 import api from "../configues/api";
 import toast from "react-hot-toast";
@@ -9,6 +9,15 @@ import ClassicTemplate from "../components/templates/ClassicTemplate";
 import MinimalTemplate from "../components/templates/MinimalTemplate";
 import MinimalImageTemplate from "../components/templates/MinimalImageTemplate";
 import ComparisonModal from "../components/ComparisonModal";
+
+const THEME = {
+  bg: '#faedcd',
+  text: '#99582a',
+  primary: '#bb9457',
+  secondary: '#d4a373',
+  surface: '#f8f1de',
+  border: '#d4a373',
+};
 
 const ResumeAnalyze = () => {
   const { resumeId } = useParams();
@@ -22,6 +31,53 @@ const ResumeAnalyze = () => {
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [improvementData, setImprovementData] = useState(null);
   const [loadingImprovement, setLoadingImprovement] = useState(false);
+
+  const headerRef = useRef(null);
+  const leftPanelRef = useRef(null);
+  const rightPanelRef = useRef(null);
+
+  // GSAP Animations
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.gsap) {
+      const gsap = window.gsap;
+      
+      // Header animation
+      gsap.from(headerRef.current, {
+        y: -100,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out"
+      });
+
+      // Panels slide in
+      gsap.from(leftPanelRef.current, {
+        x: -50,
+        opacity: 0,
+        duration: 1,
+        delay: 0.3,
+        ease: "power3.out"
+      });
+
+      gsap.from(rightPanelRef.current, {
+        x: 50,
+        opacity: 0,
+        duration: 1,
+        delay: 0.3,
+        ease: "power3.out"
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    // Load GSAP
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js';
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   // Load resume data
   const loadResume = async () => {
@@ -124,10 +180,7 @@ const ResumeAnalyze = () => {
         toast.success("✨ Resume improved successfully!");
         setShowComparisonModal(false);
         
-        // Store which sections were changed in localStorage for animation
         localStorage.setItem('changedSections', JSON.stringify(appliedSections));
-        
-        // Redirect back to builder
         navigate(`/app/builder/${resumeId}`);
       }
     } catch (error) {
@@ -147,37 +200,32 @@ const ResumeAnalyze = () => {
   }, [resumeData]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: THEME.bg }}>
       {/* Header */}
-      <div className="bg-white border-t-2 border-b border-gray-200 sticky top-0 z-10">
+      <div ref={headerRef} className="border-t-2 border-b sticky top-0 z-10 backdrop-blur-sm" style={{ 
+        backgroundColor: `${THEME.surface}f0`,
+        borderColor: THEME.border 
+      }}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <Link
-              to={`/app/builder/${resumeId}`}
-              className="inline-flex gap-2 items-center text-slate-500 hover:text-slate-700 transition-all"
-            >
-              <ArrowLeftIcon className="size-4" />
-              Back to Editor
-            </Link>
+            <AnimatedBackButton resumeId={resumeId} />
             
             <div className="flex items-center gap-3">
-              <button
+              <AnimatedButton
                 onClick={analyzeResume}
                 disabled={loadingAnalysis}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50"
-              >
-                <Sparkles className="size-4" />
-                {loadingAnalysis ? "Analyzing..." : "Re-analyze"}
-              </button>
+                icon={<Sparkles className="size-4" />}
+                text={loadingAnalysis ? "Analyzing..." : "Re-analyze"}
+                variant="secondary"
+              />
               
-              <button
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50"
+              <AnimatedButton
                 onClick={handleAutoFix}
                 disabled={!analysisData || loadingImprovement}
-              >
-                <Wand2 className="size-4" />
-                {loadingImprovement ? "Processing..." : "Auto-Fix Issues"}
-              </button>
+                icon={<Wand2 className="size-4" />}
+                text={loadingImprovement ? "Processing..." : "Auto-Fix Issues"}
+                variant="primary"
+              />
             </div>
           </div>
         </div>
@@ -188,10 +236,16 @@ const ResumeAnalyze = () => {
         <div className="grid lg:grid-cols-2 gap-6">
           
           {/* LEFT: Resume Preview */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-800">Your Resume</h2>
-              <p className="text-sm text-gray-600">Preview of your current resume</p>
+          <div ref={leftPanelRef} className="rounded-2xl shadow-lg border-2" style={{
+            backgroundColor: 'white',
+            borderColor: THEME.border
+          }}>
+            <div className="px-6 py-4 border-b-2 rounded-t-2xl" style={{
+              background: `linear-gradient(135deg, ${THEME.surface} 0%, ${THEME.bg} 100%)`,
+              borderColor: THEME.border
+            }}>
+              <h2 className="text-lg font-semibold" style={{ color: THEME.text }}>Your Resume</h2>
+              <p className="text-sm opacity-70" style={{ color: THEME.text }}>Preview of your current resume</p>
             </div>
             
             <div className="p-6">
@@ -206,10 +260,22 @@ const ResumeAnalyze = () => {
           </div>
 
           {/* RIGHT: Analysis Results */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="bg-gradient-to-r from-emerald-50 to-blue-50 px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-800">AI Analysis</h2>
-              <p className="text-sm text-gray-600">Insights and recommendations</p>
+          <div ref={rightPanelRef} className="rounded-2xl shadow-lg border-2" style={{
+            backgroundColor: THEME.surface,
+            borderColor: THEME.border
+          }}>
+            <div className="px-6 py-4 border-b-2 rounded-t-2xl relative overflow-hidden" style={{
+              background: `linear-gradient(135deg, ${THEME.primary} 0%, ${THEME.secondary} 100%)`,
+              borderColor: THEME.border
+            }}>
+              <div className="relative z-10">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <TrendingUp className="size-5" />
+                  AI Analysis
+                </h2>
+                <p className="text-sm text-white/90">Insights and recommendations</p>
+              </div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
             </div>
             
             <div className="p-6">
@@ -218,8 +284,8 @@ const ResumeAnalyze = () => {
               ) : analysisData ? (
                 <AnalysisContent data={analysisData} />
               ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Sparkles className="size-12 mx-auto mb-4 text-gray-300" />
+                <div className="text-center py-12" style={{ color: THEME.text }}>
+                  <Sparkles className="size-12 mx-auto mb-4 opacity-30" style={{ color: THEME.primary }} />
                   <p>Click "Analyze" to get AI insights</p>
                 </div>
               )}
@@ -244,19 +310,112 @@ const ResumeAnalyze = () => {
   );
 };
 
+// Animated Back Button
+const AnimatedBackButton = ({ resumeId }) => {
+  const buttonRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (window.gsap) {
+      window.gsap.to(buttonRef.current, {
+        x: -5,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (window.gsap) {
+      window.gsap.to(buttonRef.current, {
+        x: 0,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  return (
+    <Link
+      to={`/app/builder/${resumeId}`}
+      ref={buttonRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="inline-flex gap-2 items-center px-4 py-2 rounded-lg transition-all font-medium"
+      style={{
+        color: THEME.text,
+        backgroundColor: 'transparent'
+      }}
+    >
+      <ArrowLeft className="size-4" />
+      Back to Editor
+    </Link>
+  );
+};
+
+// Animated Button Component
+const AnimatedButton = ({ onClick, disabled, icon, text, variant }) => {
+  const buttonRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (window.gsap && !disabled) {
+      window.gsap.to(buttonRef.current, {
+        scale: 1.05,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (window.gsap && !disabled) {
+      window.gsap.to(buttonRef.current, {
+        scale: 1,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const styles = variant === 'primary' 
+    ? {
+        background: `linear-gradient(135deg, ${THEME.primary} 0%, ${THEME.secondary} 100%)`,
+        color: 'white'
+      }
+    : {
+        backgroundColor: THEME.surface,
+        color: THEME.text,
+        border: `2px solid ${THEME.border}`
+      };
+
+  return (
+    <button
+      ref={buttonRef}
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all disabled:opacity-50 font-medium shadow-md"
+      style={styles}
+    >
+      {icon}
+      {text}
+    </button>
+  );
+};
+
 // Skeleton Loader for Resume Preview
 const ResumePreviewSkeleton = () => (
   <div className="animate-pulse space-y-4">
-    <div className="h-24 bg-gray-200 rounded"></div>
+    <div className="h-24 rounded" style={{ backgroundColor: THEME.border }}></div>
     <div className="space-y-3">
-      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+      <div className="h-4 rounded w-3/4" style={{ backgroundColor: THEME.border }}></div>
+      <div className="h-4 rounded w-1/2" style={{ backgroundColor: THEME.border }}></div>
+      <div className="h-4 rounded w-5/6" style={{ backgroundColor: THEME.border }}></div>
     </div>
-    <div className="h-32 bg-gray-200 rounded"></div>
+    <div className="h-32 rounded" style={{ backgroundColor: THEME.border }}></div>
     <div className="space-y-3">
-      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-      <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+      <div className="h-4 rounded w-2/3" style={{ backgroundColor: THEME.border }}></div>
+      <div className="h-4 rounded w-4/5" style={{ backgroundColor: THEME.border }}></div>
     </div>
   </div>
 );
@@ -264,39 +423,28 @@ const ResumePreviewSkeleton = () => (
 // Skeleton Loader for Analysis
 const AnalysisSkeleton = () => (
   <div className="animate-pulse space-y-6">
-    {/* Overall Score Skeleton */}
     <div className="flex items-center gap-4">
-      <div className="w-20 h-20 bg-gray-200 rounded-2xl"></div>
+      <div className="w-20 h-20 rounded-2xl" style={{ backgroundColor: THEME.border }}></div>
       <div className="flex-1 space-y-2">
-        <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+        <div className="h-6 rounded w-1/3" style={{ backgroundColor: THEME.border }}></div>
+        <div className="h-4 rounded w-2/3" style={{ backgroundColor: THEME.border }}></div>
       </div>
     </div>
 
-    {/* Critical Issues Skeleton */}
-    <div className="bg-gray-100 rounded-xl p-5 space-y-3">
-      <div className="h-5 bg-gray-200 rounded w-1/4"></div>
-      <div className="h-4 bg-gray-200 rounded w-full"></div>
-      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+    <div className="rounded-xl p-5 space-y-3" style={{ backgroundColor: THEME.bg }}>
+      <div className="h-5 rounded w-1/4" style={{ backgroundColor: THEME.border }}></div>
+      <div className="h-4 rounded w-full" style={{ backgroundColor: THEME.border }}></div>
+      <div className="h-4 rounded w-5/6" style={{ backgroundColor: THEME.border }}></div>
     </div>
 
-    {/* Quick Wins Skeleton */}
-    <div className="bg-gray-100 rounded-xl p-5 space-y-3">
-      <div className="h-5 bg-gray-200 rounded w-1/4"></div>
-      <div className="h-4 bg-gray-200 rounded w-full"></div>
-      <div className="h-4 bg-gray-200 rounded w-4/5"></div>
-    </div>
-
-    {/* Sections Skeleton */}
     <div className="space-y-4">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-gray-100 rounded-xl p-5 space-y-3">
+        <div key={i} className="rounded-xl p-5 space-y-3" style={{ backgroundColor: THEME.bg }}>
           <div className="flex justify-between">
-            <div className="h-5 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-8 w-20 bg-gray-200 rounded-full"></div>
+            <div className="h-5 rounded w-1/3" style={{ backgroundColor: THEME.border }}></div>
+            <div className="h-8 w-20 rounded-full" style={{ backgroundColor: THEME.border }}></div>
           </div>
-          <div className="h-4 bg-gray-200 rounded w-full"></div>
-          <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+          <div className="h-4 rounded w-full" style={{ backgroundColor: THEME.border }}></div>
         </div>
       ))}
     </div>
@@ -305,11 +453,26 @@ const AnalysisSkeleton = () => (
 
 // Analysis Content Component
 const AnalysisContent = ({ data }) => {
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    if (window.gsap && contentRef.current) {
+      const elements = contentRef.current.querySelectorAll('.animate-item');
+      window.gsap.from(elements, {
+        y: 30,
+        opacity: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power3.out"
+      });
+    }
+  }, [data]);
+
   const getScoreColor = (score) => {
-    if (score >= 90) return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-500' };
-    if (score >= 75) return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-500' };
-    if (score >= 60) return { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-500' };
-    return { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-500' };
+    if (score >= 90) return { bg: '#d4edda', text: '#155724', border: '#28a745' };
+    if (score >= 75) return { bg: '#d1ecf1', text: '#0c5460', border: '#17a2b8' };
+    if (score >= 60) return { bg: '#fff3cd', text: '#856404', border: '#ffc107' };
+    return { bg: '#f8d7da', text: '#721c24', border: '#dc3545' };
   };
 
   const getScoreLabel = (score) => {
@@ -322,107 +485,245 @@ const AnalysisContent = ({ data }) => {
   const overallColor = getScoreColor(data.overallScore);
 
   return (
-    <div className="space-y-6">
+    <div ref={contentRef} className="space-y-6">
       {/* Overall Score */}
-      <div className={`${overallColor.bg} border-2 ${overallColor.border} rounded-xl p-6`}>
+      <div className="animate-item rounded-2xl p-6 border-2 shadow-lg" style={{
+        backgroundColor: overallColor.bg,
+        borderColor: overallColor.border
+      }}>
         <div className="flex items-center gap-4">
-          <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br from-white/90 to-white/70 flex flex-col items-center justify-center shadow-lg border-2 ${overallColor.border}`}>
-            <span className={`text-3xl font-bold ${overallColor.text}`}>{data.overallScore}</span>
-            <span className="text-xs font-medium text-gray-600">/ 100</span>
-          </div>
+          <ScoreCircle score={data.overallScore} color={overallColor} />
           <div>
-            <h3 className={`text-2xl font-bold ${overallColor.text} mb-1`}>
+            <h3 className="text-2xl font-bold mb-1" style={{ color: overallColor.text }}>
               {getScoreLabel(data.overallScore)}
             </h3>
-            <p className="text-sm text-gray-600">{data.summary}</p>
+            <p className="text-sm" style={{ color: THEME.text }}>{data.summary}</p>
           </div>
         </div>
       </div>
 
       {/* Critical Issues */}
       {data.criticalIssues && data.criticalIssues.length > 0 && (
-        <div className="bg-red-50 border-l-4 border-red-500 rounded-r-xl p-5 shadow-sm">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">⚠️</span>
-            <div className="flex-1">
-              <h3 className="font-semibold text-red-900 mb-3 text-lg">Critical Issues</h3>
-              <div className="space-y-2">
-                {data.criticalIssues.map((issue, i) => (
-                  <p key={i} className="text-red-800 text-sm leading-relaxed">• {issue}</p>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <IssueCard
+          title="Critical Issues"
+          icon="⚠️"
+          items={data.criticalIssues}
+          type="critical"
+        />
       )}
 
       {/* Quick Wins */}
       {data.quickWins && data.quickWins.length > 0 && (
-        <div className="bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl p-5 shadow-sm">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">✨</span>
-            <div className="flex-1">
-              <h3 className="font-semibold text-emerald-900 mb-3 text-lg">Quick Wins</h3>
-              <div className="space-y-2">
-                {data.quickWins.map((win, i) => (
-                  <p key={i} className="text-emerald-800 text-sm leading-relaxed">• {win}</p>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <IssueCard
+          title="Quick Wins"
+          icon="✨"
+          items={data.quickWins}
+          type="wins"
+        />
       )}
 
       {/* Section Scores */}
-      <div className="space-y-4">
-        <h3 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
-          <span className="text-xl">📊</span>
+      <div className="space-y-4 animate-item">
+        <h3 className="font-semibold text-lg flex items-center gap-2" style={{ color: THEME.text }}>
+          <Award className="size-5" style={{ color: THEME.primary }} />
           Detailed Breakdown
         </h3>
-        {data.sections?.map((section, i) => {
-          const sectionColor = getScoreColor(section.score);
-          return (
-            <div key={i} className="bg-white border-2 border-gray-100 rounded-xl p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold text-gray-900 text-lg">{section.name}</h4>
-                <div className={`${sectionColor.bg} ${sectionColor.text} px-4 py-2 rounded-full font-bold text-lg border-2 ${sectionColor.border}`}>
-                  {section.score}/100
-                </div>
-              </div>
+        {data.sections?.map((section, i) => (
+          <SectionCard key={i} section={section} index={i} />
+        ))}
+      </div>
+    </div>
+  );
+};
 
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <span className="text-green-600 text-lg mt-0.5">✓</span>
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold text-green-700 uppercase mb-1">Strength</p>
-                    <p className="text-sm text-gray-700">{section.topStrength}</p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-3">
-                  <span className="text-blue-600 text-lg mt-0.5">→</span>
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold text-blue-700 uppercase mb-1">Improve</p>
-                    <p className="text-sm text-gray-700">{section.topImprovement}</p>
-                  </div>
-                </div>
+// Score Circle Component
+const ScoreCircle = ({ score, color }) => {
+  const circleRef = useRef(null);
 
-                {section.keywords && section.keywords.length > 0 && (
-                  <div className="pt-2">
-                    <p className="text-xs font-semibold text-gray-600 uppercase mb-2">Key Terms</p>
-                    <div className="flex flex-wrap gap-2">
-                      {section.keywords.map((keyword, ki) => (
-                        <span key={ki} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+  useEffect(() => {
+    if (window.gsap && circleRef.current) {
+      window.gsap.from(circleRef.current, {
+        scale: 0,
+        rotation: -180,
+        duration: 0.8,
+        ease: "back.out(1.7)"
+      });
+    }
+  }, []);
+
+  return (
+    <div
+      ref={circleRef}
+      className="w-20 h-20 rounded-2xl flex flex-col items-center justify-center shadow-lg border-2"
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
+        borderColor: color.border
+      }}
+    >
+      <span className="text-3xl font-bold" style={{ color: color.text }}>{score}</span>
+      <span className="text-xs font-medium" style={{ color: THEME.text }}>/ 100</span>
+    </div>
+  );
+};
+
+// Issue Card Component
+const IssueCard = ({ title, icon, items, type }) => {
+  const cardRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (window.gsap) {
+      window.gsap.to(cardRef.current, {
+        y: -5,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (window.gsap) {
+      window.gsap.to(cardRef.current, {
+        y: 0,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const styles = type === 'critical'
+    ? {
+        bg: '#f8d7da',
+        border: '#dc3545',
+        text: '#721c24'
+      }
+    : {
+        bg: '#d4edda',
+        border: '#28a745',
+        text: '#155724'
+      };
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="animate-item rounded-2xl p-5 shadow-md border-l-4"
+      style={{
+        backgroundColor: styles.bg,
+        borderColor: styles.border
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <span className="text-2xl">{icon}</span>
+        <div className="flex-1">
+          <h3 className="font-semibold mb-3 text-lg" style={{ color: styles.text }}>{title}</h3>
+          <div className="space-y-2">
+            {items.map((item, i) => (
+              <p key={i} className="text-sm leading-relaxed" style={{ color: styles.text }}>
+                • {item}
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Section Card Component
+const SectionCard = ({ section, index }) => {
+  const cardRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (window.gsap) {
+      window.gsap.to(cardRef.current, {
+        scale: 1.02,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (window.gsap) {
+      window.gsap.to(cardRef.current, {
+        scale: 1,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 90) return { bg: '#d4edda', text: '#155724', border: '#28a745' };
+    if (score >= 75) return { bg: '#d1ecf1', text: '#0c5460', border: '#17a2b8' };
+    if (score >= 60) return { bg: '#fff3cd', text: '#856404', border: '#ffc107' };
+    return { bg: '#f8d7da', text: '#721c24', border: '#dc3545' };
+  };
+
+  const sectionColor = getScoreColor(section.score);
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="rounded-2xl p-5 shadow-md border-2 transition-all"
+      style={{
+        backgroundColor: 'white',
+        borderColor: THEME.border
+      }}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="font-semibold text-lg" style={{ color: THEME.text }}>{section.name}</h4>
+        <div
+          className="px-4 py-2 rounded-full font-bold text-lg border-2"
+          style={{
+            backgroundColor: sectionColor.bg,
+            color: sectionColor.text,
+            borderColor: sectionColor.border
+          }}
+        >
+          {section.score}/100
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex gap-3">
+          <Zap className="size-5 mt-0.5" style={{ color: '#28a745' }} />
+          <div className="flex-1">
+            <p className="text-xs font-semibold uppercase mb-1" style={{ color: '#28a745' }}>Strength</p>
+            <p className="text-sm" style={{ color: THEME.text }}>{section.topStrength}</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-3">
+          <TrendingUp className="size-5 mt-0.5" style={{ color: THEME.primary }} />
+          <div className="flex-1">
+            <p className="text-xs font-semibold uppercase mb-1" style={{ color: THEME.primary }}>Improve</p>
+            <p className="text-sm" style={{ color: THEME.text }}>{section.topImprovement}</p>
+          </div>
+        </div>
+
+        {section.keywords && section.keywords.length > 0 && (
+          <div className="pt-2">
+            <p className="text-xs font-semibold uppercase mb-2" style={{ color: THEME.text }}>Key Terms</p>
+            <div className="flex flex-wrap gap-2">
+              {section.keywords.map((keyword, ki) => (
+                <span
+                  key={ki}
+                  className="px-3 py-1 rounded-full text-xs font-medium"
+                  style={{
+                    backgroundColor: THEME.bg,
+                    color: THEME.text
+                  }}
+                >
+                  {keyword}
+                </span>
+              ))}
             </div>
-          );
-        })}
+          </div>
+        )}
       </div>
     </div>
   );
