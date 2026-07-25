@@ -237,16 +237,24 @@ Return JSON in this exact format:
     }
 
     res.status(200).json({ 
-      success: true, 
-      improvements,
-      originalData: {
-        professional_summary: resume.professional_summary,
-        experience: resume.experience,
-        education: resume.education,
-        skills: resume.skills,
-        project: resume.project
-      }
-    });
+  success: true, 
+  improvements: {
+    improved: improvements.improved,
+    changes: improvements.changes
+  },
+  originalData: {
+    full_name: resume.full_name,
+    profession: resume.profession,
+    email: resume.email,
+    phone: resume.phone,
+    location: resume.location,
+    professional_summary: resume.professional_summary,
+    experience: resume.experience,
+    education: resume.education,
+    skills: resume.skills,
+    project: resume.project
+  }
+});
   } catch (error) {
     console.error("Auto-Fix Error:", error.message);
     res.status(500).json({ message: error.message });

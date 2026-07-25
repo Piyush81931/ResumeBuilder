@@ -149,7 +149,8 @@ const ResumeAnalyze = () => {
         { analysisData },
         { headers: { Authorization: token } }
       );
-
+        console.log("📊 Analysis Data being sent:", analysisData);
+console.log("✅ Result from API:", result);
       if (result.success) {
         setImprovementData(result);
       } else {
@@ -166,28 +167,56 @@ const ResumeAnalyze = () => {
   };
 
   // Apply selected improvements
-  const handleApplyImprovements = async (dataToApply, appliedSections) => {
-    try {
-      const formData = new FormData();
-      formData.append("resumeId", resumeId);
-      formData.append("resumeData", JSON.stringify(dataToApply));
-
-      const { data } = await api.put(`api/resumes/update`, formData, {
-        headers: { Authorization: token },
-      });
-
-      if (data.resume) {
-        toast.success("✨ Resume improved successfully!");
-        setShowComparisonModal(false);
-        
-        localStorage.setItem('changedSections', JSON.stringify(appliedSections));
-        navigate(`/app/builder/${resumeId}`);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to apply improvements.");
+  // Apply selected improvements
+const handleApplyImprovements = async (dataToApply, appliedSections) => {
+  try {
+    console.log("🎯 Received dataToApply:", dataToApply);
+    
+    // Ensure we have ALL required fields from the original resume
+    const completeResumeData = {
+      full_name: resumeData.full_name || "",
+      profession: resumeData.profession || "",
+      email: resumeData.email || "",
+      phone: resumeData.phone || "",
+      location: resumeData.location || "",
+      professional_summary: dataToApply.professional_summary || resumeData.professional_summary || "",
+      experience: dataToApply.experience || resumeData.experience || [],
+      education: dataToApply.education || resumeData.education || [],
+      skills: dataToApply.skills || resumeData.skills || [],
+      project: dataToApply.project || resumeData.project || []
+    };
+    
+    // Convert skills to array if it's a string
+    if (typeof completeResumeData.skills === 'string') {
+      completeResumeData.skills = completeResumeData.skills
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
     }
-  };
+    
+    console.log("📦 Complete resume data being sent:", completeResumeData);
+
+    const formData = new FormData();
+    formData.append("resumeId", resumeId);
+    formData.append("resumeData", JSON.stringify(completeResumeData));
+
+    const { data } = await api.put(`api/resumes/update`, formData, {
+      headers: { Authorization: token },
+    });
+
+    if (data.resume) {
+      toast.success("✨ Resume improved successfully!");
+      setShowComparisonModal(false);
+      
+      localStorage.setItem('changedSections', JSON.stringify(appliedSections));
+      navigate(`/app/builder/${resumeId}`);
+    }
+  } catch (error) {
+    console.log("❌ Error:", error);
+    console.log("❌ Error response:", error.response?.data);
+    toast.error("Failed to apply improvements.");
+  }
+};
 
   useEffect(() => {
     loadResume();

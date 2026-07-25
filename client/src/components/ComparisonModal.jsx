@@ -38,19 +38,20 @@ const ComparisonModal = ({
   };
 
   const handleApply = () => {
-    // Build the data to apply based on selected changes
-    const dataToApply = {};
-    const appliedSections = [];
-    Object.keys(selectedChanges).forEach((section) => {
-      if (selectedChanges[section]) {
-        const key = section.toLowerCase().replace(/ /g, "_");
-        dataToApply[key] = improvedData[key];
-        appliedSections.push(key);
-      }
-    }); // Pass both data and which sections were changed
-
-    onApply(dataToApply, appliedSections);
-  };
+  const dataToApply = { ...originalData };  // Start with ALL data!
+  const appliedSections = [];
+  
+  Object.keys(selectedChanges).forEach((section) => {
+    if (selectedChanges[section]) {
+      const key = section.toLowerCase().replace(/ /g, "_");
+      dataToApply[key] = improvedData[key];  // Only replace selected parts
+      appliedSections.push(key);
+    }
+  });
+   console.log("📤 Sending dataToApply:", dataToApply);
+  console.log("📤 Sending appliedSections:", appliedSections);
+  onApply(dataToApply, appliedSections);
+};
 
   const renderComparison = (section, original, improved) => {
     const isSelected = selectedChanges[section];
@@ -107,7 +108,7 @@ const ComparisonModal = ({
                  {" "}
         </div>
                 {/* Comparison Content */}       {" "}
-        <div className="grid md:grid-cols-2 divide-x divide-gray-200">
+        <div className="grid md:grid-cols-1 divide-x divide-gray-200">
                     {/* Original - Danger Color */}         {" "}
           <div className="p-4" style={{ backgroundColor: "#ffe6e6" }}>
             {" "}
