@@ -1,47 +1,47 @@
-export const generateResumeText = (data) => {
+export const generateResumeText = data => {
   return `
-Full Name: ${data.personal_info?.full_name || ""}
-Profession: ${data.personal_info?.profession || ""}
-Email: ${data.personal_info?.email || ""}
-Phone: ${data.personal_info?.phone || ""}
-Location: ${data.personal_info?.location || ""}
+Full Name: ${data.personal_info?.full_name || ''}
+Profession: ${data.personal_info?.profession || ''}
+Email: ${data.personal_info?.email || ''}
+Phone: ${data.personal_info?.phone || ''}
+Location: ${data.personal_info?.location || ''}
 
 Professional Summary:
-${data.professional_summary || ""}
+${data.professional_summary || ''}
 
 Skills:
-${data.skills?.join(", ")}
+${data.skills?.join(', ')}
 
 Experience:
 ${data.experience
-    ?.map(
-      (exp) => `
+  ?.map(
+    exp => `
 - ${exp.position} at ${exp.company}
-  (${exp.start_date} - ${exp.is_current ? "Present" : exp.end_date})
+  (${exp.start_date} - ${exp.is_current ? 'Present' : exp.end_date})
   ${exp.description}
 `
-    )
-    .join("\n")}
+  )
+  .join('\n')}
 
 Projects:
 ${data.project
-    ?.map(
-      (p) => `
+  ?.map(
+    p => `
 - ${p.name} (${p.type})
   ${p.description}
 `
-    )
-    .join("\n")}
+  )
+  .join('\n')}
 
 Education:
 ${data.education
-    ?.map(
-      (edu) => `
+  ?.map(
+    edu => `
 - ${edu.degree} in ${edu.field}
   ${edu.institution} (${edu.graduation})
   GPA: ${edu.gpa}
 `
-    )
-    .join("\n")}
-`;
-};
+  )
+  .join('\n')}
+`
+}
