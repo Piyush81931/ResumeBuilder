@@ -1,5 +1,6 @@
 import Resume from '../models/Resume.js'
 import ai from '../config/ai.js'
+import { generateResumeText } from '../utils/generateResumeText.js'
 //function for enhancing professional summary using ai
 //POST: /api/ai/enhance-pro-sum
 export const enhanceProfessionalSummary = async (req, res) => {
@@ -131,6 +132,7 @@ export const uploadResume = async (req, res) => {
     })
     const extractData = response.choices[0].message.content
     const parseData = JSON.parse(extractData)
+    parseData.resumeText = generateResumeText(parseData)
     const newResume = await Resume.create({ userId, title, ...parseData })
 
     return res.status(200).json({ resumeId: newResume._id })
